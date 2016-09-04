@@ -50,8 +50,7 @@ ls()
 hist(rnorm(1000),col=2) # typical plot of normal data (simulation)
 
 ## ------------------------------------------------------------------------
-# '''histogram for the 1st sample in the expression dataset: almost all values
-# '''are=0 
+# '''histogram for the 1st sample in the expression dataset: almost all values are = 0 
 hist(edata[,1],col=2,breaks=100) 
 hist(edata[,1],col=2,breaks=1000) #increse the bins 
 
@@ -88,10 +87,9 @@ table(low_genes)
 filt_edata = filter(as.data.frame(edata),!low_genes) #keep the ones that are not low genes 
 dim(filt_edata)
 
-# ''' The average isn't always necessarily great for count data because you 
-# '''often have these really high values.
+# ''' The average isn't always necessarily great for count data because you often have these really high values.
 summary(edata)
-# '''for a lot of genes the mean is high just because the max. value is high.
+# '''for a lot of genes the mean is high just because the max. value is high. 
 # '''But the median is not affected for this, so the median is a bit more robust
 
 # '''remove the low value genes : taking the median for each row
