@@ -1,0 +1,303 @@
+---
+title: "Command Line for Genomics Analysis"
+author: "Jose V. Die"
+output: html_notebook
+---
+<br> 
+  
+First thing we may want to do is to print the working directory. 
+```{r}
+pwd
+```
+
+&nbsp;  
+  
+
+Now, let\'s move to the *Plants*, then the *apple* directory. 
+```{r}
+cd Plants/apple
+```
+
+&nbsp;
+
+The directory *Plants* contain genomic information for three plant systems: 
+  apple, pear, and peach. The genomic information is organized in 3 levels:  
+    
+  * Genome (chromosome / scaffold)  
+  * Annotation (genes / transcript variants)  
+  * Samples list
+  
+
+&nbsp;  
+  
+**Question.** How many chromosomes are there in the genome?  
+
+Search for the header of each sequence contained into the *apple.genome* file.
+```{r}
+grep ">" apple.genome 
+```
+
+&nbsp;
+
+**Question.** How many genes and transcript variants are there in the genome?   
+Search the *apple.genes* file. concerning the genes, the answer is contained in 
+the first column. 
+```{r}
+cut -f1 apple.genes | sort | uniq | wc -l
+```
+Related to transcript variants, that information is shown in column2. 
+```{r}
+cut -f2 apple.genes | sort | wc -l
+```
+We can see the list of those variants, by looking at the column1. 
+```{r}
+cut -f1 apple.genes | sort | uniq -c
+```
+
+&nbsp;
+
+**Question.** How many genes have a single-variant? how many multiple-variants?
+From the last output, we can recognize the genes that have 1 variant; the rest are 
+genes multi-variants. 
+```{r}
+# single:
+cut -f1 apple.genes | sort | uniq -c | grep " 1 " | wc -l
+cut -f1 apple.genes | sort | uniq -c | grep -c " 1 " 
+# multiple: 
+cut -f1 apple.genes | sort | uniq -c | grep -v 1 | wc -l
+```
+&nbsp;
+
+**Question.** How many genes are there on each of the '+' and '-' strands?  
+The strand is contained in column6. 
+```{r}
+cut -f6 apple.genes | grep "+" | wc -l
+cut -f6 apple.genes | grep "-" | wc -l
+```
+
+&nbsp;  
+
+**Question.** How many genes (and transcripts) are there on each chromosome?  
+```{r}
+# variants
+grep chr1 apple.genes | wc -l
+grep chr1 apple.genes | cut -f1 | sort | uniq -c
+# genes
+grep chr1 apple.genes | cut -f1 | sort -u 
+grep chr1 apple.genes | cut -f1 | sort -u | wc -l
+
+# other chrs. 
+grep chr2 apple.genes | cut -f1 | sort | uniq -c
+grep chr3 apple.genes | cut -f1 | sort | uniq -c
+grep chr4 apple.genes | cut -f1 | sort | uniq -c
+grep chr5 apple.genes | cut -f1 | sort | uniq -c
+```
+
+&nbsp;  
+
+**Question.** What plant systems contain the *Smell* gene?  
+We want to look for the gene in all directories (*/) that contain the file genes (*.genes)
+```{r}
+grep Smell */*.genes | cut -f1 | uniq -c | sort -r
+```
+
+&nbsp;  
+
+**Question.** How many plant systems contain a *Color* gene?  
+```{r}
+grep Color */*.genes | cut -f1 | uniq -c | sort -r
+```
+
+&nbsp;  
+
+**Question.** What genes are in common between apple and pear? What genes are 
+specific to each?  
+```{r}
+# to apply comm command the files have to be sorted
+cut -f1 apple/apple.genes | sort -u > appleGenes
+cut -f1 pear/pear.genes | sort -u > pearGenes
+# comm -1 - 2 = ignore specifics from file1, ignore specifics from file2
+comm -1 -2 appleGenes pearGenes
+# specific apple
+# ignore specific pear (-2)
+# ignore common (-3) 
+comm appleGenes pearGenes
+comm -2 -3 appleGenes pearGenes
+
+# specific pear
+# ignore specific apple (-1)
+# ignore common (-3) 
+comm -1 -3 appleGenes pearGenes
+
+```
+
+&nbsp;  
+  
+**Question.** How many genes are in common to all 3 plant systems?  
+```{r}
+cat comm -1 -2 appleGenes pearGenes peachGenes | sort | uniq -c | grep -v " 1 "
+```
+
+&nbsp; 
+  
+&nbsp; 
+    
+    
+## QUIZ 1
+Extract the files from the `tar` file.
+```{r}
+tar -xvf gencommand_proj1_data.tar
+```
+That command makes the `gencommand_proj1_data` directoy. Let's move into that directory and check the content. 
+```{r}
+cd gencommand_proj1_data
+ls -l 
+```
+
+&nbsp;  
+  
+**Question1.** How many chromosomes are there in the genome?
+```{r}
+grep ">" apple.genome 
+# or 
+grep -c ">" apple.genome 
+```
+
+&nbsp;  
+
+**Question2.** How many genes? 
+```{r}
+cut -f1 | sort -u | wc -l
+```
+&nbsp;  
+
+**Question3.** How many transcript variants?
+```{r}
+cut -f1 apple.genes | wc -l
+# or
+cut -f2 apple.genes | sort -u | wc -l
+```
+
+&nbsp;  
+
+**Question4.** How many genes have a single splice variant?  
+To use grep by the number of occurrences we'll use the following syntax: " N ", where N is the number of occurrences.   
+```{r}
+cut -f1 apple.genes | sort | uniq -c | grep -c " 1 " 
+```
+
+&nbsp;  
+
+**Question5.** How many genes have 2 or more splice variants?
+```{r}
+cut -f1 apple.genes | sort | uniq -c | grep -v " 1 " 
+cut -f1 apple.genes | sort | uniq -c | grep -v -c " 1 "
+```
+
+&nbsp;  
+
+**Question6.** How many genes are there on the '+' strand?
+```{r}
+cut -f1,4 apple.genes | sort -u | grep "+" -c
+```
+
+&nbsp;  
+
+**Question7.**  How many genes are there on the '-' strand?
+```{r}
+cut -f1,4 apple.genes | sort -u | grep "-" -c
+```
+
+&nbsp;  
+
+**Question8.** How many genes are there on chromosome chr1? 
+```{r}
+cut -f1,3 apple.genes | grep chr1 | sort -u | wc -l
+```
+
+&nbsp;  
+
+**Question9.** How many genes are there on chromosome chr2?
+```{r}
+cut -f1,3 apple.genes | grep chr2 | sort -u | wc -l
+```
+
+&nbsp;  
+
+**Question10.** How many genes are there on chromosome chr3?
+```{r}
+cut -f1,3 apple.genes | grep chr3 | sort -u | wc -l
+```
+
+&nbsp;  
+
+**Question11.** How many transcripts are there on chromosome chr1?
+```{r}
+cut -f2,3 apple.genes | grep -c chr1  
+```
+
+&nbsp;  
+
+**Question12.** How many transcripts are there on chromosome chr2?
+```{r}
+cut -f2,3 apple.genes | grep -c chr2
+```
+
+&nbsp;  
+
+**Question13.** How many transcripts are there on chromosome chr3?
+```{r}
+cut -f2,3 apple.genes | grep -c chr3
+```
+
+&nbsp;  
+
+**Question14.** How many genes are in common between condition A and condition B?  
+Here (in pseudo code) is one way to think about it:   
+    
+  * concatenate files conditionA + conditionB  
+  * keep the column1 with the genes  
+  * grep the genes by the number of occurrences (2)
+```{r}
+cat apple.condition{A,B} | cut -f1 | sort | uniq -c | grep -c " 2 "
+```
+<br>  
+  
+Another way to approach the question is using the command `comm`. 
+  
+  * make a list of genes from conditionsA  
+  * make a list of genes from conditionB  
+  * ignore the specific genes from conditionA, and conditionB
+```{r}
+cut -f1 apple.conditionA | sort -u > experimentA
+cut -f1 apple.conditionB | sort -u > experimentB
+
+comm -1 -2 experimentA experimentB | wc -l
+```
+
+&nbsp;  
+
+**Question15.** How many genes are specific to condition A?  
+  
+  * ignore the specific genes from conditionB,
+  * ignore the common genes to condition A, B 
+```{r}
+comm -2 -3 experimentA experimentB | wc -l
+```
+
+&nbsp;  
+
+**Question16.** How many genes are specific to condition B?  
+  
+  * ignore the specific genes from conditionA,
+  * ignore the common genes to condition A, B 
+```{r}
+comm -1 -3 experimentA experimentB | wc -l
+```
+
+&nbsp;  
+
+**Question17.** How many genes are in common to all three conditions?
+```{r}
+cut -f1 apple.condition{A,B,C} | sort | uniq -c | grep -c " 3 "
+```
